@@ -15,7 +15,8 @@ class CGIHandler : public ARequestHandler
 public:
 	CGIHandler();
 	virtual ~CGIHandler();
-	std::string handleRequest(const HTTPRequest &request); // Adjusted to return std::string
+	std::string handleRequest(const HTTPRequest &request);
+	char** CGIHandler::createArgvForExecve(const Environment& env);
 	std::string executeCGI(const Environment &env);
 
 private:

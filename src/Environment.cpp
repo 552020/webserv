@@ -286,7 +286,7 @@ void Environment::HTTPRequestToMetaVars(HTTPRequest request, Environment &env)
 	env.setVar("PATH_INFO", pathInfo);
 	// most likely append the PATH_INFO to the root directory of the script OR MAYBE use a specific mapping logic
 	// std::string pathTranslated = translatePathToPhysical(scriptVirtualPath, pathInfo); // Implement this function
-	// env.setVar("PATH_TRANSLATED", pathTranslated);
+	env.setVar("PATH_TRANSLATED", scriptName);//TEMPORARY
 	// SCRIPT_NAME = URI path to identify CGI script, not just the name of the script
 	env.setVar("SCRIPT_NAME", scriptName);
 	// The query string from the URL sent by the client

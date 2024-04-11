@@ -7,8 +7,10 @@ std::string CGIHandler::handleRequest(const HTTPRequest &request) {
 
 	//load the meta vars from the request to env
     env.HTTPRequestToMetaVars(request, env);
+	env.printMetaVars();
 
     std::string cgiOutput = executeCGI(env);
+
 
     return cgiOutput;
 }
@@ -20,6 +22,7 @@ std::string CGIHandler::executeCGI(const Environment &env) {
     std::string cgiScriptPath = env.getVar("SCRIPT_NAME");
     // const char** argv = NULL;
 	const char* argv[0] = {cgiScriptPath.c_str()};
+
 	
 	int pipeFD[2];
     if (pipe(pipeFD) == -1) {
