@@ -17,7 +17,7 @@
 class Environment
 {
   private:
-	std::map<std::string, std::string> envVars;
+	std::map<std::string, std::string> metaVars;
 
   public:
 	Environment();									  // Default constructor if needed
@@ -29,10 +29,10 @@ class Environment
 
 	// transform request to meta vars (Environment object)
 	bool isAuthorityForm(const HTTPRequest &request);
-	std::pair<std::string, std::string> separatePathAndInfo(const std::string &requestTarget) const;
 	void RequestTargetToMetaVars(HTTPRequest request, Environment &env);
 	std::string formatQueryString(const std::multimap<std::string, std::string> &queryParams) const;
-	void subtractQueryFromPathInfo(std::string& pathInfo, const std::string& queryString) {
+	std::pair<std::string, std::string> separatePathAndInfo(const std::string &requestTarget) const;
+	void subtractQueryFromPathInfo(std::string& pathInfo, const std::string& queryString);
 	void HTTPRequestToMetaVars(HTTPRequest request, Environment &env);
 
 	// convert to execve format

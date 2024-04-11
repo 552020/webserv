@@ -6,7 +6,7 @@ Environment::Environment()
 {
 }
 
-Environment::Environment(const Environment &other) : envVars(other.envVars)
+Environment::Environment(const Environment &other) : metaVars(other.metaVars)
 {
 }
 
@@ -14,7 +14,7 @@ Environment &Environment::operator=(const Environment &other)
 {
 	if (this != &other)
 	{							 // Protect against self-assignment
-		envVars = other.envVars; // Use std::map's assignment operator for a deep copy
+		metaVars = other.metaVars; // Use std::map's assignment operator for a deep copy
 	}
 	return *this;
 }
@@ -24,15 +24,15 @@ Environment &Environment::operator=(const Environment &other)
  */
 void Environment::setVar(const std::string &key, const std::string &value)
 {
-	envVars[key] = value;
+	metaVars[key] = value;
 }
 
 // it does not modify any member variables of the Environment class
 //  (hence the const at the end of the function signature).
 std::string Environment::getVar(const std::string &key) const
 {
-	std::map<std::string, std::string>::const_iterator it = envVars.find(key);
-	if (it != envVars.end())
+	std::map<std::string, std::string>::const_iterator it = metaVars.find(key);
+	if (it != metaVars.end())
 	{
 		return it->second;
 	}
@@ -57,7 +57,7 @@ std::string Environment::getVar(const std::string &key) const
 std::vector<char *> Environment::getForExecve() const
 {
 	std::vector<char *> result;
-	for (std::map<std::string, std::string>::const_iterator it = envVars.begin(); it != envVars.end(); ++it)
+	for (std::map<std::string, std::string>::const_iterator it = metaVars.begin(); it != metaVars.end(); ++it)
 	{
 		std::string env = it->first + "=" + it->second;
 		char *envCStr = new char[env.size() + 1];
