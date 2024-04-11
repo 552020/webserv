@@ -5,20 +5,23 @@
 std::string CGIHandler::handleRequest(const HTTPRequest &request) {
     Environment env;
 
+	//load the meta vars from the request to env
     env.HTTPRequestToMetaVars(request, env);
 
-    std::string cgiScriptPath = env.getVar("SCRIPT_NAME");
-    const char** argv = NULL;
-	// const char* argv[0] = {cgiScriptPath.c_str()};
-    std::string cgiOutput = executeCGI(argv, env);
+    std::string cgiOutput = executeCGI(env);
 
     return cgiOutput;
 }
 
 
-std::string CGIHandler::executeCGI(const char *argv[], const Environment &env) {
+std::string CGIHandler::executeCGI(const Environment &env) {
 	std::cout<<"------------------inside CGIHandler::executeCGI-------------------" << std::endl;
-  	int pipeFD[2];
+  	
+    std::string cgiScriptPath = env.getVar("SCRIPT_NAME");
+    // const char** argv = NULL;
+	const char* argv[0] = {cgiScriptPath.c_str()};
+	
+	int pipeFD[2];
     if (pipe(pipeFD) == -1) {
         perror("pipe failed");
         _exit(EXIT_FAILURE);

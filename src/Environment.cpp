@@ -236,6 +236,18 @@ std::string Environment::formatQueryString(const std::multimap<std::string, std:
 	}
 	return queryString;
 }
+void Environment::subtractQueryFromPathInfo(std::string& pathInfo, const std::string& queryString) {
+	if (queryString.empty()) {
+		return;
+	}
+
+	if (pathInfo.length() >= queryString.length() &&
+		pathInfo.compare(pathInfo.length() - queryString.length(), queryString.length(), queryString) == 0) {
+		pathInfo.erase(pathInfo.length() - queryString.length());
+	}
+
+}
+
 
 // RFC 3875 for more information on CGI environment variables, or README_CGI_ENV.md
 void Environment::HTTPRequestToMetaVars(HTTPRequest request, Environment &env)
@@ -256,9 +268,14 @@ void Environment::HTTPRequestToMetaVars(HTTPRequest request, Environment &env)
 	env.setVar("GATEWAY_INTERFACE", "CGI/1.1");
 
 	//_______Path-related variables
+	std::string queryString = formatQueryString(request.getQueryString());
+	env.setVar("QUERY_STRING", queryString);
 	std::pair<std::string, std::string> pathComponents = separatePathAndInfo(request.getRequestTarget());
 	std::string scriptName = pathComponents.first; // path to the script
 	std::string pathInfo = pathComponents.second;  // path after the script
+
+	substractQueryToPathInfo(pathInfo, queryString);
+
 	env.setVar("PATH_INFO", pathInfo);
 	// most likely append the PATH_INFO to the root directory of the script OR MAYBE use a specific mapping logic
 	// std::string pathTranslated = translatePathToPhysical(scriptVirtualPath, pathInfo); // Implement this function
@@ -266,8 +283,6 @@ void Environment::HTTPRequestToMetaVars(HTTPRequest request, Environment &env)
 	// SCRIPT_NAME = URI path to identify CGI script, not just the name of the script
 	env.setVar("SCRIPT_NAME", scriptName);
 	// The query string from the URL sent by the client
-	std::string queryString = formatQueryString(request.getQueryString());
-	env.setVar("QUERY_STRING", queryString);
 
 	// The REMOTE_HOST variable contains the fully qualified domain name of
 	// the client sending the request to the server

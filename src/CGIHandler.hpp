@@ -16,7 +16,7 @@ public:
 	CGIHandler();
 	virtual ~CGIHandler();
 	std::string handleRequest(const HTTPRequest &request); // Adjusted to return std::string
-	std::string executeCGI(const char *argv[], const Environment &env);
+	std::string executeCGI(const Environment &env);
 
 private:
 	CGIHandler(const CGIHandler &other);
