@@ -1,5 +1,7 @@
 #include "CGIHandler.hpp"
 
+#define EXIT_FAILURE 1
+
 std::string CGIHandler::handleRequest(const HTTPRequest &request) {
     Environment env;
 
