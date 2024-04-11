@@ -42,6 +42,13 @@ std::string Environment::getVar(const std::string &key) const
 	}
 }
 
+void Environment::printMetaVars() const {
+    for (std::map<std::string, std::string>::const_iterator it = metaVars.begin(); it != metaVars.end(); ++it) {
+        std::cout << it->first << " = " << it->second << std::endl;
+    }
+}
+
+
 /**
  * @brief Generates a vector of C-style strings suitable for execve.
  *
@@ -274,7 +281,7 @@ void Environment::HTTPRequestToMetaVars(HTTPRequest request, Environment &env)
 	std::string scriptName = pathComponents.first; // path to the script
 	std::string pathInfo = pathComponents.second;  // path after the script
 
-	substractQueryToPathInfo(pathInfo, queryString);
+	subtractQueryFromPathInfo(pathInfo, queryString);
 
 	env.setVar("PATH_INFO", pathInfo);
 	// most likely append the PATH_INFO to the root directory of the script OR MAYBE use a specific mapping logic
