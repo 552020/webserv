@@ -37,12 +37,13 @@ void	simple(sockaddr_in serverAddress)
 {
 	const char *requests[] = {
         "GET / HTTP/1.1\r\nHost: www.example.com\r\n\r\n", // 200 (OK)
-        "POST / HTTP/1.1\r\nHost: www.example.com\r\n\r\n", //  200 (OK)
-        "GETT / HTTP/1.1\r\nHost: www.example.com\r\n\r\n", // 501 (Not Implemented)
-        "GET /random HTTP/1.1\r\nHost: www.example.com\r\n\r\n", // 400 (Bad Request)
-        "GET / HTTP/9.9s\r\nHost: www.example.com\r\n\r\n", // 400 (Bad Request)
-        " / HTTP/1.1\r\nHost: www.example.com\r\n\r\n", // 400 (Bad Request)
-		"GET / HTTP/1.1\nHost: www.example.com\r\n\r\n", // 400 (Bad Request)
+        "GET / HTTP/1.1\r\nHost: localhost:8080/hello\r\n\r\n", // 200 (OK)
+        // "POST / HTTP/1.1\r\nHost: www.example.com\r\n\r\n", //  200 (OK)
+        // "GETT / HTTP/1.1\r\nHost: www.example.com\r\n\r\n", // 501 (Not Implemented)
+        // "GET /random HTTP/1.1\r\nHost: www.example.com\r\n\r\n", // 400 (Bad Request)
+        // "GET / HTTP/9.9s\r\nHost: www.example.com\r\n\r\n", // 400 (Bad Request)
+        // " / HTTP/1.1\r\nHost: www.example.com\r\n\r\n", // 400 (Bad Request)
+		// "GET / HTTP/1.1\nHost: www.example.com\r\n\r\n", // 400 (Bad Request)
 		NULL
     };
 	sendData(requests, serverAddress);

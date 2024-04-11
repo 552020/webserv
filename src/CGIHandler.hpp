@@ -5,19 +5,22 @@
 #include "HTTPRequest.hpp"
 #include "HTTPResponse.hpp"
 #include "Environment.hpp"
+#include <unistd.h>
+#include <sys/wait.h>
+#include <fcntl.h>
+#include <vector>
 
 class CGIHandler : public ARequestHandler
 {
-  public:
+public:
 	CGIHandler();
 	virtual ~CGIHandler();
-	virtual HTTPResponse handleRequest(const HTTPRequest &request);
-	// std::string executeCGI(const HTTPRequest &request, const Environment &env);
+	std::string handleRequest(const HTTPRequest &request); // Adjusted to return std::string
 	std::string executeCGI(const char *argv[], const Environment &env);
 
-  private:
+private:
 	CGIHandler(const CGIHandler &other);
 	CGIHandler &operator=(const CGIHandler &other);
 };
 
-#endif // CGIHANDLER_HPP
+#endif

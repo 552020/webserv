@@ -1,21 +1,57 @@
 #include "CGIHandler.hpp"
-#include <vector>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <unistd.h>
 
-CGIHandler::CGIHandler()
-{
+std::string CGIHandler::handleRequest(const HTTPRequest &request) {
+    Environment env;
+
+    env.HTTPRequestToMetaVars(request, env);
+
+    std::string cgiScriptPath = env.getVar("SCRIPT_NAME");
+    const char** argv = NULL;
+	// const char* argv[0] = {cgiScriptPath.c_str()};
+    std::string cgiOutput = executeCGI(argv, env);
+
+    return cgiOutput;
 }
 
-CGIHandler::~CGIHandler()
-{
-}
 
-HTTPResponse CGIHandler::handleRequest(const HTTPRequest &request)
-{
-	(void)request;
-	HTTPResponse response;
-	// Determine CGI script path and set up environment
-	return response;
+std::string CGIHandler::executeCGI(const char *argv[], const Environment &env) {
+	std::cout<<"------------------inside CGIHandler::executeCGI-------------------" << std::endl;
+  	int pipeFD[2];
+    if (pipe(pipeFD) == -1) {
+        perror("pipe failed");
+        _exit(EXIT_FAILURE);
+    }
+
+     pid_t pid = fork();
+    if (pid == -1) {
+        perror("fork failed");
+        _exit(EXIT_FAILURE);
+    } else if (pid == 0) {
+        close(pipeFD[0]);
+        dup2(pipeFD[1], STDOUT_FILENO);
+        close(pipeFD[1]);
+
+        std::vector<char *> envp = env.getForExecve();
+        if (execve(argv[0], const_cast<char* const*>(argv), envp.data()) == -1) {
+            perror("execve");
+            exit(EXIT_FAILURE);
+        }
+    } else {
+        close(pipeFD[1]);
+
+        std::string cgiOutput;
+        char readBuffer[256];
+        ssize_t bytesRead;
+        while ((bytesRead = read(pipeFD[0], readBuffer, sizeof(readBuffer) - 1)) > 0) {
+            readBuffer[bytesRead] = '\0';
+            cgiOutput += readBuffer;
+        }
+        close(pipeFD[0]);
+
+        int status;
+        waitpid(pid, &status, 0);
+        return cgiOutput;
+    }
+
+    return ""; // Should not reach here
 }

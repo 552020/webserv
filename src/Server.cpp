@@ -103,6 +103,9 @@ void Server::handleConnection(int clientFD)
 	// const char* argv[] = { "./cgi-bin/thirty_py.cgi", NULL };
 	// const char* argv[] = { "./cgi-bin/hello.cgi", NULL };
 
+std::cout<<"DEBUG: inside handleConnection, before router creation " << std::endl;
+
+
 	// std::string response;
 	Router router;
 	if (!router.pathExists(response, request.getRequestTarget()))
@@ -117,6 +120,7 @@ void Server::handleConnection(int clientFD)
 		{
 			if (request.getMethod() == "GET" && request.getRequestTarget() == "/hello")
 			{
+std::cout<<"DEBUG: inside router.isDynamicRequest " << std::endl;
 				// env has to be created before CGI, because it is passed to the CGI
 				CGIHandler cgiHandler;
 				Environment env;
@@ -136,11 +140,13 @@ void Server::handleConnection(int clientFD)
 		}
 		else
 		{
+std::cout<<"DEBUG: inside handleConnection, before staticContentHandler creation " << std::endl;
 			StaticContentHandler staticContentHandler;
 			// This if condition only for legacy reasons! TODO: remove
 			if (request.getMethod() == "GET" &&
 				(request.getRequestTarget() == "/" || request.getRequestTarget() == "/home"))
 			{
+std::cout<<"DEBUG: inside legacy code before handleHomePage" << std::endl;
 				response = staticContentHandler.handleHomePage();
 			}
 			else

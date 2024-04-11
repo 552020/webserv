@@ -4,7 +4,7 @@
 #define EXIT_FAILURE 1
 
 std::string handleCGIRequest(const char* argv[], Environment env) {
-
+std::cout<<"------------------inside handleCGIRequest-------------------" << std::endl;
     std::vector<char*> envp = env.getForExecve();
 
     int pipeFD[2];

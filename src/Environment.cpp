@@ -238,10 +238,8 @@ std::string Environment::formatQueryString(const std::multimap<std::string, std:
 }
 
 // RFC 3875 for more information on CGI environment variables, or README_CGI_ENV.md
-void Environment::HTTPRequestToMetaVars(char *rawRequest, Environment &env)
+void Environment::HTTPRequestToMetaVars(HTTPRequest request, Environment &env)
 {
-	HTTPRequest request(rawRequest);
-
 	//________General variables
 	// Set the method used for the request (e.g., GET, POST)
 	env.setVar("REQUEST_METHOD", request.getMethod());

@@ -12,11 +12,11 @@ class ARequestHandler
 	virtual ~ARequestHandler()
 	{
 	}
-	virtual HTTPResponse handleRequest(const HTTPRequest &request) = 0;
+	virtual std::string handleRequest(const HTTPRequest &request) = 0;
 
   private:
 	ARequestHandler(const ARequestHandler &other);
 	ARequestHandler &operator=(const ARequestHandler &other);
 };
 
-#endif // AREQUESTHANDLER_HPP
+#endif
