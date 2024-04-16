@@ -134,11 +134,10 @@ void Server::handleConnection(Connection conn, size_t &i)
 	//	printVariablesHeadersBody(request);
 
 	std::string responseString;
-	std::cout << "\033[31m" << "Error " << request.getStatusCode() << " in request" << "\033[0m" << std::endl;
-	std::cout << "\033[31m" << "Error " << request.getStatusCode() << " in request" << "\033[0m" << std::endl;
 	if (request.getStatusCode() != 200)
 	{
 		std::cout << "\033[31m" << "Error " << request.getStatusCode() << " in request" << "\033[0m" << std::endl;
+		std::cout << "\033[31m" << request.getErrorMessage() << " in request" << "\033[0m" << std::endl;
 		conn.setErrorResponse(request.getStatusCode());
 		HTTPResponse response = conn.getResponse();
 		// What should be done
