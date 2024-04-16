@@ -149,16 +149,26 @@ bool hasCRLF(const char *request, unsigned int &i, int mode)
 	if (mode == 0)
 	{
 		if (request[i] && request[i + 1] && request[i] == '\r' && request[i + 1] == '\n')
+		{
+			std::cout << "XXXXX 0 CRLF found" << std::endl;
 			return (true);
+		}
+		std::cout << "XXXXX 0.1 CRLF not found" << std::endl;
 		return (false);
 	}
 	if (mode == 1)
 	{
 		if (request[i] && request[i + 1] && request[i + 2] && request[i + 3] && request[i] == '\r' &&
 			request[i + 1] == '\n' && request[i + 2] == '\r' && request[i + 3] == '\n')
+		{
+			std::cout << "XXXXX 1 CRLF found" << std::endl;
+
 			return (true);
+		}
+		std::cout << "XXXXX 1.1 CRLF not found" << std::endl;
 		return (false);
 	}
+	std::cout << "XXXXX     reached end of function" << std::endl;
 	return (false);
 }
 
