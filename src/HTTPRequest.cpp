@@ -213,18 +213,18 @@ int HTTPRequest::parseHeaders(const char *request)
 		value = extractHeaderValue(request, i);
 		if (value.empty())
 			return (ft_error(400, "Invalid header value"));
-		if (!hasCRLF(request, i, 0))
-			return (ft_error(400, "No CRLF after header"));
+		// if (!hasCRLF(request, i, 0))                            COMMENTED BECAUSE CAUSES BUG
+		// 	return (ft_error(400, "No CRLF after header"));
 		_headers.insert(std::make_pair(key, value));
 		i += 2;						// skip '\r' and '\n'
 		if (hasCRLF(request, i, 0)) // end of header section
 			break;
 	}
-	if (!hasCRLF(request, i, 0))
-		return (ft_error(400, "No CRLF after header"));
+	// if (!hasCRLF(request, i, 0))                                COMMENTED BECAUSE CAUSES BUG
+	// 	return (ft_error(400, "No CRLF after header"));
 	makeHeadersLowCase();
-	if (!hasMandatoryHeaders(*this))
-		return (ft_error(400, "Invalid headers"));
+	// if (!hasMandatoryHeaders(*this))                            COMMENTED BECAUSE CAUSES BUG
+	// 	return (ft_error(400, "Invalid headers"));
 	if (_method == "GET" && request[i + 2]) // has something after headers
 		return (ft_error(400, "Invalid headers"));
 	return (200);
