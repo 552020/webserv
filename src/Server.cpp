@@ -39,18 +39,18 @@ void Server::startPollEventLoop()
 		// std::cout << "printFDsVector(_FDs); - after polling" << std::endl;
 		// printFDsVector(_FDs);
 		// print_connectionsVector(_connections);
-		std::cout << "poll() returned: " << ret << std::endl;
+		// std::cout << "poll() returned: " << ret << std::endl;
 		if (ret > 0)
 		{
 			for (size_t i = 0; i < _FDs.size(); i++)
 			{
-				std::cout << "i: " << i << std::endl;
+				// std::cout << "i: " << i << std::endl;
 				if (_FDs[i].revents & POLLIN)
 				{
 					// std::cout << "POLLIN" << std::endl;
 					if (i == 0)
 					{
-						std::cout << "Server socket event" << std::endl;
+						// std::cout << "Server socket event" << std::endl;
 						// std::cout << "i == 0" << std::endl;
 
 						acceptNewConnection();
@@ -59,7 +59,7 @@ void Server::startPollEventLoop()
 					}
 					else
 					{
-						std::cout << "Client socket event" << std::endl;
+						// std::cout << "Client socket event" << std::endl;
 						// std::cout << "i != 0" << std::endl;
 						// TODO: only the index is actually needed
 						// handleConnection(_connections[i]);
@@ -134,41 +134,42 @@ void Server::handleConnection(Connection conn, size_t &i)
 	//	printVariablesHeadersBody(request);
 
 	std::string responseString;
-	// std::cout << "\033[31m" << "Error " << request.getStatusCode() << " in request" << "\033[0m" << std::endl;
-	// if (request.getStatusCode() != 200)
-	// {
-	// 	std::cout << "\033[31m" << "Error " << request.getStatusCode() << " in request" << "\033[0m" << std::endl;
-	// 	conn.setErrorResponse(request.getStatusCode());
-	// 	HTTPResponse response = conn.getResponse();
-	// 	// What should be done
-	// 	response = conn.getResponse();
-	// 	responseString = response.toString();
-	// }
-	// else
-	// {
-
-	Router router;
-	HTTPResponse response;
-	std::string _webRoot = getWebRoot();
-	response = conn.getResponse();
-	if (!router.pathisValid(request, response, _webRoot))
+	std::cout << "\033[31m" << "Error " << request.getStatusCode() << " in request" << "\033[0m" << std::endl;
+	std::cout << "\033[31m" << "Error " << request.getStatusCode() << " in request" << "\033[0m" << std::endl;
+	if (request.getStatusCode() != 200)
 	{
-		std::cout << "Path does not exist" << std::endl;
-		StaticContentHandler staticHandler;
-		response = staticHandler.handleNotFound();
-		return;
-	}
-	response = router.routeRequest(request);
-	std::string responseString;
-	if (response.isCGI() == true)
-	{
-		responseString = response.getBody();
+		std::cout << "\033[31m" << "Error " << request.getStatusCode() << " in request" << "\033[0m" << std::endl;
+		conn.setErrorResponse(request.getStatusCode());
+		HTTPResponse response = conn.getResponse();
+		// What should be done
+		response = conn.getResponse();
+		responseString = response.toString();
 	}
 	else
 	{
-		responseString = response.toString();
+
+		Router router;
+		HTTPResponse response;
+		std::string _webRoot = getWebRoot();
+		response = conn.getResponse();
+		if (!router.pathisValid(request, response, _webRoot))
+		{
+			std::cout << "Path does not exist" << std::endl;
+			StaticContentHandler staticHandler;
+			response = staticHandler.handleNotFound();
+			return;
+		}
+		response = router.routeRequest(request);
+		std::string responseString;
+		if (response.isCGI() == true)
+		{
+			responseString = response.getBody();
+		}
+		else
+		{
+			responseString = response.toString();
+		}
 	}
-	// }
 	write(conn.getPollFd().fd, responseString.c_str(), responseString.size());
 	close(conn.getPollFd().fd);
 	_FDs.erase(_FDs.begin() + i);
