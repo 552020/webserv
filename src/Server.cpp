@@ -134,41 +134,41 @@ void Server::handleConnection(Connection conn, size_t &i)
 	//	printVariablesHeadersBody(request);
 
 	std::string responseString;
-	std::cout << "\033[31m" << "Error " << request.getStatusCode() << " in request" << "\033[0m" << std::endl;
-	if (request.getStatusCode() != 200)
+	// std::cout << "\033[31m" << "Error " << request.getStatusCode() << " in request" << "\033[0m" << std::endl;
+	// if (request.getStatusCode() != 200)
+	// {
+	// 	std::cout << "\033[31m" << "Error " << request.getStatusCode() << " in request" << "\033[0m" << std::endl;
+	// 	conn.setErrorResponse(request.getStatusCode());
+	// 	HTTPResponse response = conn.getResponse();
+	// 	// What should be done
+	// 	response = conn.getResponse();
+	// 	responseString = response.toString();
+	// }
+	// else
+	// {
+
+	Router router;
+	HTTPResponse response;
+	std::string _webRoot = getWebRoot();
+	response = conn.getResponse();
+	if (!router.pathisValid(request, response, _webRoot))
 	{
-		std::cout << "\033[31m" << "Error " << request.getStatusCode() << " in request" << "\033[0m" << std::endl;
-		conn.setErrorResponse(request.getStatusCode());
-		HTTPResponse response = conn.getResponse();
-		// What should be done
-		response = conn.getResponse();
-		responseString = response.toString();
+		std::cout << "Path does not exist" << std::endl;
+		StaticContentHandler staticHandler;
+		response = staticHandler.handleNotFound();
+		return;
+	}
+	response = router.routeRequest(request);
+	std::string responseString;
+	if (response.isCGI() == true)
+	{
+		responseString = response.getBody();
 	}
 	else
 	{
-
-		Router router;
-		HTTPResponse response;
-		std::string _webRoot = getWebRoot();
-		response = conn.getResponse();
-		if (!router.pathisValid(request, response, _webRoot))
-		{
-			std::cout << "Path does not exist" << std::endl;
-			StaticContentHandler staticHandler;
-			response = staticHandler.handleNotFound();
-			return;
-		}
-		response = router.routeRequest(request);
-		std::string responseString;
-		if (response.isCGI() == true)
-		{
-			responseString = response.getBody();
-		}
-		else
-		{
-			responseString = response.toString();
-		}
+		responseString = response.toString();
 	}
+	// }
 	write(conn.getPollFd().fd, responseString.c_str(), responseString.size());
 	close(conn.getPollFd().fd);
 	_FDs.erase(_FDs.begin() + i);
