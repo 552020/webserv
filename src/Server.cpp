@@ -131,9 +131,19 @@ void Server::handleConnection(Connection conn, size_t &i)
 	// It should be double "\r\n" to separate the headers from the body
 	std::string httpRequestString = conn.getHeaders() + conn.getBody();
 	HTTPRequest request(httpRequestString.c_str());
-	//	printVariablesHeadersBody(request);
+	std::cout << request.getStatusCode() << std::endl;
+	printVariablesHeadersBody(request);
 
+	// std::string response;
+	Router router;
+	HTTPResponse response;
+	// response.setIsCGI(false);
+	std::string _webRoot = getWebRoot();
+	// Check if this is the right way to do it
+	response = conn.getResponse();
 	std::string responseString;
+	response = router.routeRequest(request);
+
 	if (request.getStatusCode() != 200)
 	{
 		std::cout << "\033[31m" << "Error " << request.getStatusCode() << " in request" << "\033[0m" << std::endl;
@@ -147,21 +157,14 @@ void Server::handleConnection(Connection conn, size_t &i)
 	}
 	else
 	{
-
-		Router router;
-		HTTPResponse response;
-		std::string _webRoot = getWebRoot();
-		response = conn.getResponse();
 		if (!router.pathisValid(request, response, _webRoot))
 		{
 			std::cout << "Path does not exist" << std::endl;
 			StaticContentHandler staticHandler;
 			response = staticHandler.handleNotFound();
-			return;
+			responseString = response.toString();
 		}
-		response = router.routeRequest(request);
-		std::string responseString;
-		if (response.isCGI() == true)
+		else if (response.isCGI() == true)
 		{
 			responseString = response.getBody();
 		}
