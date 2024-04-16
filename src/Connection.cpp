@@ -405,12 +405,13 @@ bool Connection::isChunked()
 	return false;
 }
 
-void Connection::setErrorResponse()
+void Connection::setErrorResponse(int statusCode)
 {
+	std::cout << "\033[31m" << "Error " << statusCode << " in request" << "\033[0m" << std::endl;
 	// Construct the body string with the error message
 	std::string body = "<html><head><title>Error</title></head>"
 					   "<body><h1>Error: " +
-					   std::to_string(_response.getStatusCode()) + "</h1></body></html>";
+					   std::to_string(statusCode) + "</h1></body></html>";
 
 	// Set the Content-Length header based on the size of the body
 	_response.setHeader("Content-Length", std::to_string(body.size()));
