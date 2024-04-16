@@ -265,8 +265,13 @@ std::ostream &operator<<(std::ostream &out, const HTTPRequest &obj)
 	std::multimap<std::string, std::string> b = obj.getQueryString();
 	std::vector<std::string> c = obj.getBody();
 
+	// ANSI escape code for yellow text
+	const char *yellow = "\033[33m";
+	// ANSI escape code to reset text color
+	const char *reset = "\033[0m";
+
 	std::multimap<std::string, std::string>::iterator it;
-	out << "---------------------Variables--------------------" << std::endl;
+	out << yellow << "---------------------Variables--------------------" << std::endl;
 	for (it = b.begin(); it != b.end(); it++)
 	{
 		out << "Key: " << it->first << ", Value: " << it->second << std::endl;
@@ -280,9 +285,11 @@ std::ostream &operator<<(std::ostream &out, const HTTPRequest &obj)
 	out << "---------------------End--------------------------" << std::endl;
 	out << "---------------------Body-------------------------" << std::endl;
 	for (size_t i = 0; i < c.size(); ++i)
+	{
 		out << c[i] << std::endl;
-	out << "---------------------End--------------------------" << std::endl;
-	return (out);
+	}
+	out << "---------------------End--------------------------" << reset << std::endl;
+	return out;
 }
 
 // ----------------UTILS----------------------------
