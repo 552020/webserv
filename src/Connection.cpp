@@ -405,6 +405,22 @@ bool Connection::isChunked()
 	return false;
 }
 
+void Connection::setErrorResponse()
+{
+	// Construct the body string with the error message
+	std::string body = "<html><head><title>Error</title></head>"
+					   "<body><h1>Error: " +
+					   std::to_string(_response.getStatusCode()) + "</h1></body></html>";
+
+	// Set the Content-Length header based on the size of the body
+	_response.setHeader("Content-Length", std::to_string(body.size()));
+
+	// Set the Content-Type header for HTML content
+	_response.setHeader("Content-Type", "text/html");
+
+	// Finally, set the body of the response
+	_response.setBody(body);
+}
 /* Debugging */
 
 void Connection::printConnection() const

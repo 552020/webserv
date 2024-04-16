@@ -131,32 +131,43 @@ void Server::handleConnection(Connection conn, size_t &i)
 	// It should be double "\r\n" to separate the headers from the body
 	std::string httpRequestString = conn.getHeaders() + conn.getBody();
 	HTTPRequest request(httpRequestString.c_str());
-	std::cout << request.getStatusCode() << std::endl;
-	printVariablesHeadersBody(request);
+	//	printVariablesHeadersBody(request);
 
-	// std::string response;
-	Router router;
-	HTTPResponse response;
-	// response.setIsCGI(false);
-	std::string _webRoot = getWebRoot();
-	// Check if this is the right way to do it
-	response = conn.getResponse();
-	if (!router.pathisValid(request, response, _webRoot))
-	{
-		std::cout << "Path does not exist" << std::endl;
-		StaticContentHandler staticHandler;
-		response = staticHandler.handleNotFound();
-		return;
-	}
-	response = router.routeRequest(request);
 	std::string responseString;
-	if (response.isCGI() == true)
+
+	if (request.getStatusCode() != 200)
 	{
-		responseString = response.getBody();
+		std::cout << "Error " << request.getStatusCode() << " in request" << std::endl;
+		conn.setErrorResponse();
+		HTTPResponse response = conn.getResponse();
+		// What should be done
+		response = conn.getResponse();
+		responseString = response.toString();
 	}
 	else
 	{
-		responseString = response.toString();
+
+		Router router;
+		HTTPResponse response;
+		std::string _webRoot = getWebRoot();
+		response = conn.getResponse();
+		if (!router.pathisValid(request, response, _webRoot))
+		{
+			std::cout << "Path does not exist" << std::endl;
+			StaticContentHandler staticHandler;
+			response = staticHandler.handleNotFound();
+			return;
+		}
+		response = router.routeRequest(request);
+		std::string responseString;
+		if (response.isCGI() == true)
+		{
+			responseString = response.getBody();
+		}
+		else
+		{
+			responseString = response.toString();
+		}
 	}
 	write(conn.getPollFd().fd, responseString.c_str(), responseString.size());
 	close(conn.getPollFd().fd);

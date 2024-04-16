@@ -59,6 +59,7 @@ class Connection
 	void setHeaders(const std::string &headers);
 	void setBody(const std::string &body);
 	void setChunkData(const std::string &chunkData);
+	void setErrorResponse();
 	// We will not provide the setter for HTTPResponse as it should be managed by the HTTPResponse class
 	/* Debugging */
 	void printConnection() const;
