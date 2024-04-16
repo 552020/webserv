@@ -405,14 +405,41 @@ bool Connection::isChunked()
 	return false;
 }
 
+int ft_atoi(const char *str)
+{
+	int nb;
+	int i;
+	int mult;
+
+	nb = 0;
+	i = 0;
+	mult = 1;
+	while (str[i] == ' ' || str[i] == '\n' || str[i] == '\r' || str[i] == '\t' || str[i] == '\v' || str[i] == '\f')
+	{
+		i++;
+	}
+	if (str[i] == '-' || str[i] == '+')
+	{
+		if (str[i] == '-')
+			mult = -1;
+		i++;
+	}
+	while (str[i] != '\0' && str[i] >= '0' && str[i] <= '9')
+	{
+		nb = (nb * 10) + (str[i] - 48);
+		i++;
+	}
+	return (mult * nb);
+}
+
 void Connection::setErrorResponse(int statusCode)
 {
 	std::cout << "\033[31m" << "Error " << statusCode << " in request" << "\033[0m" << std::endl;
 	std::string statusMessage = _response.getStatusMessage(statusCode);
 	std::string body = "<html><head><title>Error</title></head>"
 					   "<body><h1>Error: " +
-					   std::to_string(statusCode) + " " + "</h1><p>" + statusMessage + "</p></body></html>";
-	_response.setHeader("Content-Length", std::to_string(body.size()));
+					   toString(statusCode) + " " + "</h1><p>" + statusMessage + "</p></body></html>";
+	_response.setHeader("Content-Length", toString(body.size()));
 	_response.setHeader("Content-Type", "text/html");
 	_response.setBody(body);
 }
