@@ -1,0 +1,3 @@
+[submodule "testers/webserv_tester"]
+	path = testers/webserv_tester
+	url = git@github.com:hygoni/webserv_tester.git
