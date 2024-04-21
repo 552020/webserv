@@ -14,8 +14,19 @@ HTTPResponse Router::routeRequest(const HTTPRequest &request)
 	std::string _webRoot = "var/www"; // TODO: get this from the config file
 	if (isCGI(request))
 	{
-		CGIHandler cgiHandler;
-		return cgiHandler.handleRequest(request);
+
+		if (!pathIsValid(const_cast<HTTPRequest &>(request), _webRoot))
+		{
+
+			std::cout << "Path does not exist" << std::endl;
+			StaticContentHandler staticContentInstance;
+			return staticContentInstance.handleNotFound();
+		}
+		else
+		{
+			CGIHandler cgiHandler;
+			return cgiHandler.handleRequest(request);
+		}
 	}
 	else if (isDynamicRequest(request))
 	{
