@@ -131,7 +131,7 @@ void CGIHandler::setNonBlocking(int fd)
 	}
 }
 
-std::string CGIHandler::executeCGI(const MetaVariables &env) // should take clientFD as argument
+std::string CGIHandler::executeCGI(const MetaVariables &env)
 {
 	std::string cgiOutput = "";
 	char *const *argv = createArgvForExecve(env);
@@ -143,7 +143,6 @@ std::string CGIHandler::executeCGI(const MetaVariables &env) // should take clie
 		perror("pipe failed");
 		_exit(EXIT_FAILURE);
 	}
-	std::cout << "------------------DEBG-------------------" << std::endl;
 
 	pid_t forked_pid = fork();
 	if (forked_pid == -1)
@@ -152,78 +151,72 @@ std::string CGIHandler::executeCGI(const MetaVariables &env) // should take clie
 		_exit(EXIT_FAILURE);
 	}
 	else if (forked_pid == 0)
-	{
-		std::cout << "------------------DEBG----2---------------" << std::endl;
-
+	{						   // Child process
 		close(serverToCGI[1]); // Close unused write end
 		close(CGIToServer[0]); // Close unused read end
 
-		dup2(serverToCGI[0], STDIN_FILENO);	 // read end of the serverToCGI onto (STDIN)
-		dup2(CGIToServer[1], STDOUT_FILENO); // write end of the CGIToServer onto (STDOUT)
+		dup2(serverToCGI[0], STDIN_FILENO);
+		dup2(CGIToServer[1], STDOUT_FILENO);
 
-		close(serverToCGI[0]); // close original FDs after dup2
+		close(serverToCGI[0]);
 		close(CGIToServer[1]);
 
 		std::vector<char *> envp = env.getForExecve();
 		execve(argv[0], argv, envp.data());
-		std::cout << "------------------DEBG----3---------------" << std::endl;
 
 		perror("execve");
 		_exit(EXIT_FAILURE);
 	}
 	else
-	{
-		std::cout << "------------------DEBG------4-------------" << std::endl;
-
-		// Parent process
+	{						   // Parent process
 		close(serverToCGI[0]); // Close unused read end
 		close(CGIToServer[1]); // Close unused write end
 
-		//   storePID(forked_pid, clientFD); //                TO IMPLEMENT store the PID and manage the pipes
-
-		// Read output from the CGI script
-		char readBuffer[256];
-		while (true)
+		// Set non-blocking mode for CGIToServer[0]
+		int flags = fcntl(CGIToServer[0], F_GETFL, 0);
+		if (flags == -1)
 		{
-			ssize_t bytesRead = read(CGIToServer[0], readBuffer, sizeof(readBuffer) - 1);
-			if (bytesRead > 0)
+			perror("fcntl F_GETFL");
+			_exit(EXIT_FAILURE);
+		}
+		flags |= O_NONBLOCK;
+		if (fcntl(CGIToServer[0], F_SETFL, flags) == -1)
+		{
+			perror("fcntl F_SETFL");
+			_exit(EXIT_FAILURE);
+		}
+
+		char readBuffer[1024];
+		ssize_t bytesRead;
+		bool isCGIOutputFinished = false;
+		while (!isCGIOutputFinished)
+		// if (!isCGIOutputFinished) // works with while // no will read only once
+		{
+			memset(readBuffer, 0, sizeof(readBuffer));
+			bytesRead = read(CGIToServer[0], readBuffer, sizeof(readBuffer) - 1);
+			if (bytesRead == 0) // finised reading
+			{
+				isCGIOutputFinished = true;
+			}
+			else if (bytesRead > 0) // reading
 			{
 				readBuffer[bytesRead] = '\0';
 				cgiOutput += readBuffer;
 			}
-			else if (bytesRead == -1)
-			{
-				// No data available right now, try again later
-				continue;
-			}
-			else
-			{
-				// Either an error occurred or we've reached EOF
-				break;
-			}
 		}
+
 		close(CGIToServer[0]);
 
-		int status;
-		while (waitpid(forked_pid, &status, WNOHANG) == 0)
+		// SHOUL BE IN Server::startPollEventLoop
+		//  int status;
+		//  waitpid(forked_pid, &status, WNOHANG);
+
+		while (*argv != NULL)
 		{
-			// Child process has not exited yet, server can perform other tasks
-			// and return to check the status later
+			delete[] *argv;
+			++argv;
 		}
 
-		// if (WIFEXITED(status))
-		// {
-		// 	// Child process exited we retrieve the exit status
-		// 	int exitStatus = WEXITSTATUS(status);
-		// }
-
-		while (argv[0] != NULL)
-		{
-			delete[] argv[0];
-			argv++;
-		}
-
-		std::cout << "------------------CGI output prepared-------------------" << std::endl;
 		return cgiOutput;
 	}
 }

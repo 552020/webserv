@@ -53,3 +53,41 @@ if (isFDReady(cgiOutputFD)){
 std::string cgiOutput = readCGIOutput(cgiOutputFD);
 // Process CGI output...
 }
+
+I want to manage multiple CGI or long-running CGI processes along with static file requests,
+and come back to check the status of running CGI processes using their PIDs with waitpid()
+
+File Descriptor to Non-blocking Mode
+You can set a file descriptor to non-blocking mode using the fcntl system call with the F_SETFL command to add the O_NONBLOCK flag. In this mode, if the read() operation would block, it returns immediately with a return value of -1 and sets errno to EAGAIN or EWOULDBLOCK.
+
+std::map<pid_t, bool> childProcesses;
+
+void cleanUpExitedChildren() {
+std::map<pid_t, bool>::iterator it = childProcesses.begin();
+while (it != childProcesses.end()) {
+pid_t childPid = it->first;
+int status;
+// check the status of child processes without blocking.
+pid_t result = waitpid(childPid, &status, WNOHANG);
+
+        if (result == -1) {
+            // log or handle error
+        } else if (result == 0) {
+            //  child process is still running; do nothing and move to the next entry.
+            ++it;
+        } else {
+            //  child process has exited. Remove it from map.
+            // C++98 does not support erasing while iterating directly, so use post-increment.
+            childProcesses.erase(it++);
+
+            // Optionally, you can handle the exit status here
+            if (WIFEXITED(status)) {
+                // The child exited normally.
+                int exitStatus = WEXITSTATUS(status);
+                // log this status or handle accordingly.
+
+        }
+    }
+
+}
+}

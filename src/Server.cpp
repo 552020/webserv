@@ -27,6 +27,11 @@ void Server::startListening()
 	listen();
 }
 
+void retrievefromChildProcess(int pid, int status)
+{
+	std::cout << "Child process with PID " << pid << " terminated with status " << status << std::endl;
+}
+
 void Server::startPollEventLoop()
 {
 	addServerSocketPollFdToVectors();
@@ -40,6 +45,7 @@ void Server::startPollEventLoop()
 		// printFDsVector(_FDs);
 		// print_connectionsVector(_connections);
 		std::cout << "poll() returned: " << ret << std::endl;
+		int status;
 		if (ret > 0)
 		{
 			for (size_t i = 0; i < _FDs.size(); i++)
@@ -78,6 +84,15 @@ void Server::startPollEventLoop()
 					}
 					else
 						handleClientSocketError(_FDs[i].fd, i);
+				}
+				int pid = waitpid(-1, &status, WNOHANG);
+				if (pid > 0)
+				{
+					std::cout << "Child process terminated" << std::endl;
+					//  handle child p that have changed state (terminated) without blocking the server's main event
+					//  loop.
+					// DO  :    Retrieve the Exit Status, Process and log the Termination,Resource Cleanup:
+					retrievefromChildProcess(pid, status);
 				}
 			}
 		}
