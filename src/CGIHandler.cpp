@@ -143,8 +143,8 @@ std::string CGIHandler::executeCGI(const MetaVariables &env)
 	}
 
 	// Set both ends of the pipe to non-blocking mode
-	// setNonBlocking(pipeFD[0]);
-	// setNonBlocking(pipeFD[1]);
+	setNonBlocking(pipeFD[0]);
+	setNonBlocking(pipeFD[1]);
 
 	pid_t pid = fork();
 	if (pid == -1)
@@ -162,33 +162,41 @@ std::string CGIHandler::executeCGI(const MetaVariables &env)
 		execve(argv[0], argv, envp.data());
 
 		perror("execve");
-		for (int i = 0; argv[i] != NULL; i++)
-		{
-			delete[] argv[i];
-		}
-		delete[] argv;
-		exit(EXIT_FAILURE); // `_exit` could be better in a child process after fork() due to its behavior with file
-							// descriptors and cleanup.
+		_exit(EXIT_FAILURE);
 	}
 	else
 	{
 		close(pipeFD[1]);
 
 		char readBuffer[256];
-		ssize_t bytesRead;
-		while ((bytesRead = read(pipeFD[0], readBuffer, sizeof(readBuffer) - 1)) > 0)
+		while (true)
 		{
-			readBuffer[bytesRead] = '\0';
-			cgiOutput += readBuffer;
+			ssize_t bytesRead = read(pipeFD[0], readBuffer, sizeof(readBuffer) - 1);
+			if (bytesRead > 0)
+			{
+				readBuffer[bytesRead] = '\0';
+				cgiOutput += readBuffer;
+			}
+			else if (bytesRead == -1)
+			{
+				// No data available right now, try again later
+				continue;
+			}
+			else
+			{
+				// Either an error occurred or we've reached EOF
+				break;
+			}
 		}
 		close(pipeFD[0]);
 
 		int status;
 		waitpid(pid, &status, 0);
 
-		for (int i = 0; argv[i] != NULL; i++)
+		while (argv[0] != NULL)
 		{
-			delete[] argv[i];
+			delete[] argv[0];
+			argv++;
 		}
 		delete[] argv;
 
