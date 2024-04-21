@@ -68,10 +68,26 @@ HTTPResponse CGIHandler::CGIStringToResponse(const std::string &cgiOutput)
 	if (headerEndPos == std::string::npos)
 	{
 		headerEndPos = cgiOutput.find("\n\n");
+		if (headerEndPos != std::string::npos)
+		{
+			headerEndPos += 2;
+		}
+	}
+	else
+	{
+		headerEndPos += 4;
 	}
 
-	std::string headersPart = cgiOutput.substr(0, headerEndPos);
-	std::string bodyPart = cgiOutput.substr(headerEndPos); // separator
+	std::string headersPart, bodyPart;
+	if (headerEndPos != std::string::npos)
+	{
+		headersPart = cgiOutput.substr(0, headerEndPos - (cgiOutput[headerEndPos - 1] == '\n' ? 2 : 4));
+		bodyPart = cgiOutput.substr(headerEndPos);
+	}
+	else
+	{
+		bodyPart = cgiOutput;
+	}
 
 	std::istringstream headerStream(headersPart);
 	std::string headerLine;
@@ -79,7 +95,7 @@ HTTPResponse CGIHandler::CGIStringToResponse(const std::string &cgiOutput)
 	{
 		if (!headerLine.empty() && headerLine[headerLine.size() - 1] == '\r')
 		{
-			headerLine.erase(headerLine.size() - 1); // carriage return
+			headerLine.erase(headerLine.size() - 1);
 		}
 
 		std::size_t separatorPos = headerLine.find(": ");
@@ -97,6 +113,23 @@ HTTPResponse CGIHandler::CGIStringToResponse(const std::string &cgiOutput)
 	return response;
 }
 
+void CGIHandler::setNonBlocking(int fd)
+{
+	int flags = fcntl(fd, F_GETFL);
+	if (flags == -1)
+	{
+		perror("fcntl failed");
+		_exit(EXIT_FAILURE);
+	}
+
+	flags |= O_NONBLOCK;
+	if (fcntl(fd, F_SETFL, flags) == -1)
+	{
+		perror("fcntl failed");
+		_exit(EXIT_FAILURE);
+	}
+}
+
 std::string CGIHandler::executeCGI(const MetaVariables &env)
 {
 	std::string cgiOutput = "";
@@ -108,6 +141,10 @@ std::string CGIHandler::executeCGI(const MetaVariables &env)
 		perror("pipe failed");
 		_exit(EXIT_FAILURE);
 	}
+
+	// Set both ends of the pipe to non-blocking mode
+	// setNonBlocking(pipeFD[0]);
+	// setNonBlocking(pipeFD[1]);
 
 	pid_t pid = fork();
 	if (pid == -1)
@@ -130,7 +167,8 @@ std::string CGIHandler::executeCGI(const MetaVariables &env)
 			delete[] argv[i];
 		}
 		delete[] argv;
-		exit(EXIT_FAILURE); // TODO: check if _exit isn't better
+		exit(EXIT_FAILURE); // `_exit` could be better in a child process after fork() due to its behavior with file
+							// descriptors and cleanup.
 	}
 	else
 	{
@@ -157,12 +195,4 @@ std::string CGIHandler::executeCGI(const MetaVariables &env)
 		std::cout << "------------------CGI output prepared-------------------" << std::endl;
 		return cgiOutput;
 	}
-
-	for (int i = 0; argv[i] != NULL; i++)
-	{
-		delete[] argv[i];
-	}
-	delete[] argv;
-
-	return cgiOutput;
 }

@@ -19,6 +19,7 @@ class CGIHandler : public AResponseHandler
 	char *const *createArgvForExecve(const MetaVariables &env);
 	std::string executeCGI(const MetaVariables &env);
 	HTTPResponse CGIStringToResponse(const std::string &cgiOutput);
+	void setNonBlocking(int fd);
 
   private:
 	CGIHandler(const CGIHandler &other);
