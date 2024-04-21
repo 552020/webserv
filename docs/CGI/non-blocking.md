@@ -46,3 +46,10 @@ Parent Process (Server):
 - If there's no data to write to the CGI, closes the write end immediately.
 - Otherwise, registers the write end of the server_to_cgi_pipe for monitoring write readiness (POLLOUT), enabling the server to write request body data to the CGI script.
 - Registers the read end of the cgi_to_server_pipe for monitoring read readiness (POLLIN), enabling the server to read the CGI script's output.
+
+File Descriptor for Reading: After setting up the pipes and forking the child process to run the CGI script, your server will need to read the output produced by the CGI. This output is sent back through the CGIToServer pipe, specifically through the pipe's read end. By adding this read end FD to your multiplexer, your server can be notified when there's output ready to be read (e.g., using select(), poll(), or epoll() on Linux). This way, you can asynchronously read the CGI output as soon as it becomes available, without blocking your server.
+
+if (isFDReady(cgiOutputFD)){
+std::string cgiOutput = readCGIOutput(cgiOutputFD);
+// Process CGI output...
+}

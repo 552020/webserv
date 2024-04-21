@@ -35,8 +35,8 @@ HTTPResponse CGIHandler::handleRequest(const HTTPRequest &request)
 
 char *const *CGIHandler::createArgvForExecve(const MetaVariables &env)
 {
-	std::cout << env;
-	char **argv = new char *[2];
+	int argvSize = env.getVar("X_INTERPRETER_PATH") != "" ? 3 : 2;
+	char **argv = new char *[argvSize];
 
 	std::string scriptName = env.getVar("SCRIPT_NAME");
 	std::string pathTranslated = env.getVar("PATH_TRANSLATED");
@@ -48,7 +48,6 @@ char *const *CGIHandler::createArgvForExecve(const MetaVariables &env)
 		std::strcpy(argv[0], env.getVar("X_INTERPRETER_PATH").c_str());
 		argv[1] = new char[scriptPath.length() + 1];
 		std::strcpy(argv[1], scriptPath.c_str());
-		argv[2] = NULL;
 	}
 	else
 	{
@@ -56,6 +55,8 @@ char *const *CGIHandler::createArgvForExecve(const MetaVariables &env)
 		std::strcpy(argv[0], scriptPath.c_str());
 		argv[1] = NULL;
 	}
+
+	argv[argvSize] = NULL;
 
 	return argv;
 }
@@ -130,48 +131,61 @@ void CGIHandler::setNonBlocking(int fd)
 	}
 }
 
-std::string CGIHandler::executeCGI(const MetaVariables &env)
+std::string CGIHandler::executeCGI(const MetaVariables &env) // should take clientFD as argument
 {
 	std::string cgiOutput = "";
 	char *const *argv = createArgvForExecve(env);
 
-	int pipeFD[2];
-	if (pipe(pipeFD) == -1)
+	int serverToCGI[2];
+	int CGIToServer[2];
+	if (pipe(serverToCGI) == -1 || pipe(CGIToServer) == -1)
 	{
 		perror("pipe failed");
 		_exit(EXIT_FAILURE);
 	}
+	std::cout << "------------------DEBG-------------------" << std::endl;
 
-	// Set both ends of the pipe to non-blocking mode
-	setNonBlocking(pipeFD[0]);
-	setNonBlocking(pipeFD[1]);
-
-	pid_t pid = fork();
-	if (pid == -1)
+	pid_t forked_pid = fork();
+	if (forked_pid == -1)
 	{
 		perror("fork failed");
 		_exit(EXIT_FAILURE);
 	}
-	else if (pid == 0)
+	else if (forked_pid == 0)
 	{
-		close(pipeFD[0]);
-		dup2(pipeFD[1], STDOUT_FILENO);
-		close(pipeFD[1]);
+		std::cout << "------------------DEBG----2---------------" << std::endl;
+
+		close(serverToCGI[1]); // Close unused write end
+		close(CGIToServer[0]); // Close unused read end
+
+		dup2(serverToCGI[0], STDIN_FILENO);	 // read end of the serverToCGI onto (STDIN)
+		dup2(CGIToServer[1], STDOUT_FILENO); // write end of the CGIToServer onto (STDOUT)
+
+		close(serverToCGI[0]); // close original FDs after dup2
+		close(CGIToServer[1]);
 
 		std::vector<char *> envp = env.getForExecve();
 		execve(argv[0], argv, envp.data());
+		std::cout << "------------------DEBG----3---------------" << std::endl;
 
 		perror("execve");
 		_exit(EXIT_FAILURE);
 	}
 	else
 	{
-		close(pipeFD[1]);
+		std::cout << "------------------DEBG------4-------------" << std::endl;
 
+		// Parent process
+		close(serverToCGI[0]); // Close unused read end
+		close(CGIToServer[1]); // Close unused write end
+
+		//   storePID(forked_pid, clientFD); //                TO IMPLEMENT store the PID and manage the pipes
+
+		// Read output from the CGI script
 		char readBuffer[256];
 		while (true)
 		{
-			ssize_t bytesRead = read(pipeFD[0], readBuffer, sizeof(readBuffer) - 1);
+			ssize_t bytesRead = read(CGIToServer[0], readBuffer, sizeof(readBuffer) - 1);
 			if (bytesRead > 0)
 			{
 				readBuffer[bytesRead] = '\0';
@@ -188,17 +202,26 @@ std::string CGIHandler::executeCGI(const MetaVariables &env)
 				break;
 			}
 		}
-		close(pipeFD[0]);
+		close(CGIToServer[0]);
 
 		int status;
-		waitpid(pid, &status, 0);
+		while (waitpid(forked_pid, &status, WNOHANG) == 0)
+		{
+			// Child process has not exited yet, server can perform other tasks
+			// and return to check the status later
+		}
+
+		// if (WIFEXITED(status))
+		// {
+		// 	// Child process exited we retrieve the exit status
+		// 	int exitStatus = WEXITSTATUS(status);
+		// }
 
 		while (argv[0] != NULL)
 		{
 			delete[] argv[0];
 			argv++;
 		}
-		delete[] argv;
 
 		std::cout << "------------------CGI output prepared-------------------" << std::endl;
 		return cgiOutput;
