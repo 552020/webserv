@@ -13,7 +13,7 @@ bool isValidErrorCode(std::string errorCode);
 int checkFile(const char *path);
 char *get_next_line(int fd);
 
-ConfigFile::ConfigFile(char *file) : _errorMessage(""), _tmpPath("")
+ConfigFile::ConfigFile(std::string configFile)
 {
 	parseFile(file);
 	checkVariablesKey();
