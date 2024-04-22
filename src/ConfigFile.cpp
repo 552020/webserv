@@ -13,6 +13,17 @@ bool isValidErrorCode(std::string errorCode);
 int checkFile(const char *path);
 char *get_next_line(int fd);
 
+ConfigFile::ConfigFile(char *file) : _errorMessage(""), _tmpPath("")
+{
+	parseFile(file);
+	checkVariablesKey();
+	checkVariablesValue(_variables);
+	// check each location variables values
+	for (unsigned int i = 0; i < _locations.size(); ++i)
+	{
+		checkVariablesValue(_locations[i]);
+	}
+}
 ConfigFile::ConfigFile(const ConfigFile &obj)
 {
 	*this = obj;
@@ -50,8 +61,9 @@ std::pair<std::string, std::string> ConfigFile::getVariables(std::string key) co
 	}
 	return (std::make_pair("", ""));
 }
-
-std::vector<std::map<std::string, std::string>> ConfigFile::getLocations() const
+// clang-format off
+std::vector<std::map<std::string, std::string> > ConfigFile::getLocations() const
+// clang-format on
 {
 	return (_locations);
 }
@@ -390,18 +402,6 @@ bool ConfigFile::checkVariablesValue(std::map<std::string, std::string> var)
 	return (true);
 }
 
-ConfigFile::ConfigFile(char *file) : _errorMessage(""), _tmpPath("")
-{
-	parseFile(file);
-	checkVariablesKey();
-	checkVariablesValue(_variables);
-	// check each location variables values
-	for (unsigned int i = 0; i < _locations.size(); ++i)
-	{
-		checkVariablesValue(_locations[i]);
-	}
-}
-
 std::ostream &operator<<(std::ostream &out, const ConfigFile &a)
 {
 	if (!a.getErrorMessage().empty())
@@ -410,7 +410,9 @@ std::ostream &operator<<(std::ostream &out, const ConfigFile &a)
 		return (out);
 	}
 	std::map<std::string, std::string> var = a.getVariables();
-	std::vector<std::map<std::string, std::string>> loc = a.getLocations();
+	// clang-format off
+	std::vector<std::map<std::string, std::string> > loc = a.getLocations();
+	// clang-format on
 
 	for (std::map<std::string, std::string>::iterator it = var.begin(); it != var.end(); ++it)
 		out << "Key: " << it->first << ", Value: " << it->second << std::endl;
