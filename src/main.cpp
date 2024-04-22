@@ -3,12 +3,19 @@
 
 int main(int argc, char **argv)
 {
-	(void)argc;
-	(void)argv;
-	// if (argc > 2)
-	// 	return (1);
-	// ConfigFile a(argv[1]);
-	// std::cout << a << std::endl;
+	// (void)argc;
+	// (void)argv;
+	if (argc > 2)
+	{
+		std::cerr << "Wrong number of arguments." << std::endl;
+		std::cerr << "Usage: ./webserv [config_file]" << std::endl;
+		std::cerr << "The extra arguments are ignored." << std::endl;
+	}
+	if (argc == 2)
+	{
+		ConfigFile config(argv[1]);
+		std::cout << config << std::endl;
+	}
 	Server webserv;
 	webserv.startListening();
 	webserv.startPollEventLoop();
