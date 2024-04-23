@@ -8,7 +8,7 @@
 class ConfigFile
 {
   public:
-	ConfigFile(char *file);
+	ConfigFile(std::string configFile);
 	~ConfigFile();
 	std::string getErrorMessage() const;
 	std::map<std::string, std::string> getVariables() const;
@@ -21,8 +21,8 @@ class ConfigFile
 	ConfigFile();
 	ConfigFile(const ConfigFile &obj);
 	ConfigFile &operator=(const ConfigFile &obj);
+	bool parseFile(std::string file);
 	bool error(std::string message, char *line);
-	bool parseFile(char *file);
 	bool parseLocation(char *line, int fd);
 	bool saveVariable(char *line);
 	bool saveLocationVariable(char *line, std::string &key, std::string &value);

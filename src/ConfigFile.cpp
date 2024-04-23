@@ -40,6 +40,50 @@ ConfigFile &ConfigFile::operator=(const ConfigFile &obj)
 	return (*this);
 }
 
+bool ConfigFile::parseFile(std::string file)
+{
+	char *line;
+	int fd = checkFile(file);
+	if (fd == -1)
+	{
+		return (error("Config file: Invalid file", NULL));
+	}
+
+	line = get_next_line(fd);
+	if (line == NULL || std::strcmp(line, "server {\n") != 0)
+	{
+		return (error("Config file: Syntax error", line));
+	}
+	delete line;
+
+	while (1)
+	{
+		line = get_next_line(fd);
+		if (line == NULL)
+		{
+			break;
+		}
+		else if (std::strcmp(line, "}") == 0 && !get_next_line(fd))
+		{
+			delete line;
+			return (true);
+		}
+		else if (std::strcmp(line, "\n") == 0)
+		{
+			delete line;
+		}
+		else if (isLocation(line))
+		{
+			parseLocation(line, fd);
+		}
+		else if (!saveVariable(line))
+		{
+			return (error("Config file: Syntax error", line));
+		}
+	}
+	return (error("Config file: Syntax error", line));
+}
+
 std::string ConfigFile::getErrorMessage() const
 {
 	return (_errorMessage);
@@ -185,50 +229,6 @@ bool ConfigFile::parseLocation(char *line, int fd)
 	}
 	_locations.push_back(var);
 	return (true);
-}
-
-bool ConfigFile::parseFile(char *file)
-{
-	char *line;
-	int fd = checkFile(file);
-	if (fd == -1)
-	{
-		return (error("Config file: Invalid file", NULL));
-	}
-
-	line = get_next_line(fd);
-	if (line == NULL || std::strcmp(line, "server {\n") != 0)
-	{
-		return (error("Config file: Syntax error", line));
-	}
-	delete line;
-
-	while (1)
-	{
-		line = get_next_line(fd);
-		if (line == NULL)
-		{
-			break;
-		}
-		else if (std::strcmp(line, "}") == 0 && !get_next_line(fd))
-		{
-			delete line;
-			return (true);
-		}
-		else if (std::strcmp(line, "\n") == 0)
-		{
-			delete line;
-		}
-		else if (isLocation(line))
-		{
-			parseLocation(line, fd);
-		}
-		else if (!saveVariable(line))
-		{
-			return (error("Config file: Syntax error", line));
-		}
-	}
-	return (error("Config file: Syntax error", line));
 }
 
 bool ConfigFile::checkVariablesKey()

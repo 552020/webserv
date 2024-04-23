@@ -13,7 +13,8 @@ int main(int argc, char **argv)
 	}
 	if (argc == 2)
 	{
-		ConfigFile config(argv[1]);
+		std::string configFile = argv[1];
+		ConfigFile config(configFile);
 		std::cout << config << std::endl;
 	}
 	Server webserv;
