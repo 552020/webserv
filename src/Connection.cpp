@@ -18,7 +18,7 @@ Connection::Connection(const Connection &other)
 {
 	_pollFd = other._pollFd;
 	_response = other._response;
-	_hasReadSocket =  other._hasReadSocket;
+	_hasReadSocket = other._hasReadSocket;
 	_hasFinishedReading = other._hasFinishedReading;
 	_hasDataToSend = other._hasDataToSend;
 	_hasFinishedSending = other._hasFinishedSending;
@@ -319,6 +319,14 @@ bool Connection::readBody(Parser &parser, HTTPRequest &req, HTTPResponse &res)
 
 void Connection::printConnection() const
 {
-	std::cout << "\nprintConnection" << std::endl;
-	std::cout << "Connection: " << _pollFd.fd << std::endl;
+	std::cout << CYAN << "CONNECTION # " << _pollFd.fd << " (fd)" << RESET << std::endl;
+
+	// Initial padding of 5 spaces and then the property name, with a fixed width for alignment
+	std::cout << std::setw(5) << ' ' << std::left << std::setw(22) << "hasReadSocket:" << _hasReadSocket << std::endl;
+	std::cout << std::setw(5) << ' ' << std::left << std::setw(22) << "hasFinishedReading:" << _hasFinishedReading
+			  << std::endl;
+	std::cout << std::setw(5) << ' ' << std::left << std::setw(22) << "hasDataToSend:" << _hasDataToSend << std::endl;
+	std::cout << std::setw(5) << ' ' << std::left << std::setw(22) << "hasFinishedSending:" << _hasFinishedSending
+			  << std::endl;
+	std::cout << std::setw(5) << ' ' << std::left << std::setw(22) << "canBeClosed:" << _canBeClosed << std::endl;
 }
