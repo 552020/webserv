@@ -6,6 +6,9 @@
 #include <ifaddrs.h>
 #include <netdb.h>
 #include <cstring>
+#include <vector>
+#include <cerrno>
+#include <cstdlib>
 
 struct AddressDescription
 {
