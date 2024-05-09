@@ -460,3 +460,20 @@ std::vector<std::string> ServerBlock::transformCgiExt(std::string &str)
 	}
 	return (newStr);
 }
+
+void ServerBlock::setListenEntriesFromStrings(const std::vector<std::string> &strs)
+{
+	std::vector<ListenEntry> entries;
+
+	for (unsigned int i = 0; i < strs.size(); ++i)
+	{
+		ListenEntry entry;
+		std::string str = strs[i];
+		int index = str.find(':');
+		entry._ip = str.substr(0, index);
+		std::string port = str.substr(index + 1);
+		entry._port = strToInt(port);
+		entries.push_back(entry);
+	}
+	_listenEntries = entries;
+}
