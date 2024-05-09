@@ -9,11 +9,24 @@
 // 4. index, 5. root, 6. client_max_body_size, 7. autoindex,
 // 8. allow_methods, 9. alias, 10. cgi_path, 11. cgi_ext
 // ---------------------------------
+struct ListenEntry
+{
+	std::string _ip;
+	int _port;
+	ListenEntry() : _ip(""), _port(0)
+	{
+	}
+	ListenEntry(std::string ip, int port) : _ip(ip), _port(port)
+	{
+	}
+};
+
 struct Directives
 {
 	Directives()
 	{
 		_listen.clear();
+		_listenEntries.clear();
 		_serverName.clear();
 		_errorPage.clear();
 		_index.clear();
@@ -27,6 +40,8 @@ struct Directives
 		_path = "";
 	}
 	std::vector<std::string> _listen;
+	// Eventually we can keep only _listenEntries and rename it to _listen
+	std::vector<ListenEntry> _listenEntries;
 	std::vector<std::string> _serverName;
 	// clang-format off
 	std::vector<std::pair<int, std::string> > _errorPage;
@@ -56,6 +71,7 @@ class ServerBlock
 	Directives getDirectives() const;			  // variables outside of locations
 	std::vector<Directives> getLocations() const; // location / {} blocks
 	std::vector<std::string> getListen() const;
+	std::vector<ListenEntry> getListenEntries() const;
 	std::vector<std::string> getServerName() const;
 	// clang-format off
 	std::vector<std::pair<int, std::string> > getErrorPage() const;
@@ -71,6 +87,7 @@ class ServerBlock
 
 	// SETTERS
 	void setListen(std::vector<std::string> str, bool isLocation);
+	void setListenEntries(std::vector<ListenEntry> entries, bool isLocation);
 	void setServerName(std::vector<std::string> str, bool isLocation);
 	void setErrorPage(std::pair<int, std::string> str, bool isLocation);
 	void setIndex(std::vector<std::string> str, bool isLocation);

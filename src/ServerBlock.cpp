@@ -104,6 +104,23 @@ std::vector<std::string> ServerBlock::getListen() const
 	return (_directives._listen);
 }
 
+std::vector<ListenEntry> ServerBlock::getListenEntries() const
+{
+	std::vector<ListenEntry> entries;
+
+	for (unsigned int i = 0; i < _directives._listen.size(); ++i)
+	{
+		ListenEntry entry;
+		std::string str = _directives._listen[i];
+		int index = str.find(':');
+		entry._ip = str.substr(0, index);
+		std::string port = str.substr(index + 1);
+		entry._port = strToInt(port);
+		entries.push_back(entry);
+	}
+	return (entries);
+}
+
 std::vector<std::string> ServerBlock::getServerName() const
 {
 	return (_directives._serverName);
