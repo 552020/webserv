@@ -28,7 +28,6 @@ enum PathValidation
 class Router
 {
   public:
-	Router();
 	Router(ServerBlock serverBlock, Server &server, Connection &conn);
 	~Router();
 	Router(const Router &other);
@@ -44,6 +43,7 @@ class Router
 	void handleServerBlockError(HTTPRequest &request, HTTPResponse &response, int errorCode);
 
   private:
+	Router();
 	Server &_server;
 	Connection &_conn;
 	ServerBlock _serverBlock;

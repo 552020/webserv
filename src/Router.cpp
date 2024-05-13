@@ -1,18 +1,18 @@
 #include "Router.hpp"
 #include <string>
 
-Router::Router()
-{
-}
-
 Router::Router(ServerBlock serverBlock, Server &server, Connection &conn)
-	: _serverBlock(serverBlock), _FDsRef(NULL), _pollFd(NULL)
+	: _serverBlock(serverBlock), _FDsRef(NULL), _pollFd(NULL), _server(server), _conn(conn)
 {
-	_server = server;
-	_conn = conn;
 }
 
-Router::Router(const Router &obj) : _serverBlock(obj._serverBlock), _path(obj._path), _FDsRef(NULL), _pollFd(NULL)
+Router::Router(const Router &obj)
+	: _serverBlock(obj._serverBlock)
+	, _path(obj._path)
+	, _FDsRef(NULL)
+	, _pollFd(NULL)
+	, _server(obj._server)
+	, _conn(obj._conn)
 {
 }
 
@@ -24,6 +24,9 @@ Router &Router::operator=(const Router &obj)
 	_path = obj._path;
 	_FDsRef = obj._FDsRef;
 	_pollFd = obj._pollFd;
+	_server = obj._server;
+	_conn = obj._conn;
+
 	return *this;
 }
 
