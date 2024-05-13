@@ -5,8 +5,11 @@ Router::Router()
 {
 }
 
-Router::Router(ServerBlock serverBlock) : _serverBlock(serverBlock), _FDsRef(NULL), _pollFd(NULL)
+Router::Router(ServerBlock serverBlock, Server &server, Connection &conn)
+	: _serverBlock(serverBlock), _FDsRef(NULL), _pollFd(NULL)
 {
+	_server = server;
+	_conn = conn;
 }
 
 Router::Router(const Router &obj) : _serverBlock(obj._serverBlock), _path(obj._path), _FDsRef(NULL), _pollFd(NULL)

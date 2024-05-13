@@ -29,8 +29,9 @@ class Router
 {
   public:
 	Router();
-	Router(ServerBlock serverBlock);
+	Router(ServerBlock serverBlock, Server &server, Connection &conn);
 	~Router();
+	Router(const Router &other);
 	Router &operator=(const Router &other);
 	void routeRequest(Connection &conn, HTTPRequest &request, HTTPResponse &response);
 
@@ -43,8 +44,9 @@ class Router
 	void handleServerBlockError(HTTPRequest &request, HTTPResponse &response, int errorCode);
 
   private:
+	Server &_server;
+	Connection &_conn;
 	ServerBlock _serverBlock;
-	Router(const Router &other);
 	StaticContentHandler _staticContentHandler;
 	resourcePath _path;
 	std::vector<pollfd> *_FDsRef;

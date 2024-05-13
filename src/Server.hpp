@@ -28,6 +28,8 @@ class Server
   public:
 	Server();
 	Server(const Config &config);
+	Server(const Server &other);
+	Server &operator=(const Server &other);
 	~Server();
 
 	void startListening();
@@ -92,12 +94,6 @@ class Server
 	void buildResponse(Connection &conn, size_t &i, HTTPRequest &request, HTTPResponse &response);
 	void writeToClient(Connection &conn, size_t &i, HTTPResponse &response);
 	void closeClientConnection(Connection &conn, size_t &i);
-
-	/* Not avaiable constructors */
-	// Copy constructor
-	Server(const Server &other);
-	// Assignment operator
-	Server &operator=(const Server &other);
 };
 
 #endif

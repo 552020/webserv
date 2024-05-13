@@ -15,6 +15,57 @@ Server::Server(const Config &config)
 	// while we don't have a config file
 	loadDefaultConfig();
 }
+// Copy constructor
+Server::Server(const Server &other)
+	: _port(other._port)
+	, _serverFD(other._serverFD)
+	, _clientMaxHeadersSize(other._clientMaxHeadersSize)
+	, _clientMaxBodySize(other._clientMaxBodySize)
+	, _maxClients(other._maxClients)
+	, _configFilePath(other._configFilePath)
+	, _webRoot(other._webRoot)
+	, _FDs(other._FDs)
+	, _config(other._config)
+	, _hasCGI(other._hasCGI)
+	, _CGICounter(other._CGICounter)
+{
+	// Copy the sockaddr_in struct
+	std::memcpy(&_serverAddr, &other._serverAddr, sizeof(_serverAddr));
+	// Deep copy of the connections vector
+	for (size_t i = 0; i < other._connections.size(); i++)
+	{
+		_connections.push_back(other._connections[i]);
+	}
+	*this = other;
+}
+
+// Assignment operator
+Server &Server::operator=(const Server &other)
+{
+	if (this != &other)
+	{
+		_port = other._port;
+		_serverFD = other._serverFD;
+		_clientMaxHeadersSize = other._clientMaxHeadersSize;
+		_clientMaxBodySize = other._clientMaxBodySize;
+		_maxClients = other._maxClients;
+		_configFilePath = other._configFilePath;
+		_webRoot = other._webRoot;
+		_FDs = other._FDs;
+		_config = other._config;
+		_hasCGI = other._hasCGI;
+		_CGICounter = other._CGICounter;
+		// Copy the sockaddr_in struct
+		std::memcpy(&_serverAddr, &other._serverAddr, sizeof(_serverAddr));
+		// Deep copy of the connections vector
+		_connections.clear();
+		for (size_t i = 0; i < other._connections.size(); i++)
+		{
+			_connections.push_back(other._connections[i]);
+		}
+	}
+	return *this;
+}
 
 Server::~Server()
 {
@@ -360,7 +411,7 @@ void Server::buildResponse(Connection &conn, size_t &i, HTTPRequest &request, HT
 	std::string root = serverBlock.getRoot();
 	std::cout << RED << "Root: " << root << RESET << std::endl;
 
-	Router router(serverBlock);
+	Router router(serverBlock, *this, conn);
 
 	if (response.getStatusCode() != 0)
 	{
