@@ -167,7 +167,7 @@ void Server::startPollEventLoop()
 										 _connections[i].getResponse());
 						if (_connections[i].getHasFinishedReading() && _connections[i].getHasDataToSend())
 							_FDs[i].events = POLLOUT;
-						CGIMonitor(_connections[i]);
+						// CGIMonitor(_connections[i]);
 					}
 				}
 				else if (_FDs[i].revents & (POLLERR | POLLHUP | POLLNVAL))
@@ -183,6 +183,8 @@ void Server::startPollEventLoop()
 			handleSocketTimeoutIfAny();
 		else
 			handlePollError();
+
+		int pid = waitpid(-1, &ret, WNOHANG);
 	}
 }
 
